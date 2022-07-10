@@ -1,11 +1,9 @@
 # Wren Badge Rotator
 
-[Read the article](https://medium.com/) that provides a deep dive of this repo and the problem it is solving. 
+![Wren Badge Rotator Diagram](./img/diagram.png)
 
-![Wren Badge Rotator](./img/github-profile.png)
-
-# Important Note!
-This repository is the updated source code, patched to workaround a recent change to the Wren.co site structure that obviated the previous approach. 
+# Heads up!
+This repository is the updated source code for [https://github.com/zackproser/wren-badge-rotator](https://github.com/zackproser/wren-badge-rotator), patched to work around a recent change to the Wren.co site structure that obviated the previous approach. 
 
 This code has been simplified from the original tutorial's code: it needs only issue a request to the HTCI API to scrape the badge from a public Wren profile URL and write the image that is returned over top of the previous version the new badge. 
 
@@ -13,7 +11,11 @@ The HTML scraping and re-hosting hoops from the last iteration no longer need to
 
 # Overview
 
-This is an AWS Lambda serverless function that is triggered by a CloudWatch event to run once per month. It updates my Wren.co badge on my Github profile with my latest stats 100% autonomously. 
+[Read the article](https://levelup.gitconnected.com/hacking-iframe-badges-into-auto-updating-github-profile-images-with-aws-lambda-and-golang-d6fbf78d6f6d) that provides a deep dive of this repo and the problem it is solving. 
+
+This is an AWS Lambda serverless function that is triggered by a CloudWatch event to run once per month. It updates my [Wren.co](https://www.wren.co/join/ZackProser?utm_campaign=share&utm_medium=profile_referral_link) badge on my Github profile with my latest stats 100% autonomously. 
+
+![Wren Profile Badge](./img/github-profile.png)
 
 Once a month, I review and merge the pull request it regularly opens for me. 
 
@@ -21,7 +23,7 @@ Once a month, I review and merge the pull request it regularly opens for me.
 
 This app is defined via Cloudformation in `template.yml` which creates: 
 * The AWS Lambda function that handles all the logic for: 
-	* Sending my Wren profile page's URL to the HCTI API to extract the image found in the HTML page 
+	* Sending [my Wren profile](https://www.wren.co/join/ZackProser?utm_campaign=share&utm_medium=profile_referral_link) page's URL to the HCTI API to extract the image found in the HTML page 
 	* Writing the extracted updated badge image locally and pushing it to S3 for safekeeping / debugging
 	* Cloning my Github profile repository, updating its badge, and programmatically opening a Pull Request  
 
