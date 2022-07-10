@@ -1,0 +1,76 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  wren-badge-rotator
+
+Resources:
+  WrenBadgeImageResizeBucket:
+    Type: AWS::S3::Bucket
+  # Attach a bucket policy that allows all objects uploaded to it to be read by anonymous principals (such as the HCTI API's screenshotting / scraping bots)
+  WrenBadgeImageResizeBucketAllowPublicReadPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref WrenBadgeImageResizeBucket
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Action:
+              - "s3:GetObject"
+            Resource:
+              - !Join
+                - ''
+                - - 'arn:aws:s3:::'
+                  - !Ref WrenBadgeImageResizeBucket
+                  - /*
+            Principal: "*"
+
+  WrenBadgeRotatorFunction:
+    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Properties:
+      CodeUri: wren-badge-rotator/
+      Handler: wren-badge-rotator
+      Runtime: go1.x
+      Description: A lambda function that scrapes, processes, and updates my Wren.co badge on my Github profile
+      # Allow a timeout of 15 minutes, the maximum supported by lambda, even though we won't need that much time
+      Timeout: 900
+      Events:
+        SimpleCWEEvent:
+          Type: Schedule
+          Properties:
+            # Run the lambda function once, on the second day of every month, at 8am
+            Schedule: cron(0 8 2 * ? *)
+      Environment:
+        Variables:
+          S3_BUCKET: !Ref WrenBadgeImageResizeBucket
+          WREN_USERNAME: zackproser
+          REPO_OWNER: zackproser
+
+  WrenBadgeRotatorFunctionS3BucketPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: ManageImageResizeS3Bucket
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action:
+              - 's3:*'
+            # Grant the Lambda function access to every file in the S3 bucket used for hosting the modified badge HTML and the final processed badge image
+            Resource:
+              - !Join
+                - ''
+                - - 'arn:aws:s3:::'
+                  - !Ref WrenBadgeImageResizeBucket
+                  - /*
+      Roles:
+        - !Ref WrenBadgeRotatorFunctionRole
+
+Outputs:
+  WrenBadgeRotatorFunction:
+    Description: "Lambda function ARN"
+    Value: !GetAtt WrenBadgeRotatorFunction.Arn
+  WrenbadgeRotatorFunctionIamRole:
+    Description: "Implicit IAM Role created for the badge rotator function"
+    Value: !GetAtt WrenBadgeRotatorFunctionRole.Arn
+
